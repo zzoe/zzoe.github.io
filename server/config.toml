@@ -1,0 +1,4 @@
+[http]
+    addr = ":443"
+    shuttimeout = "7s"
+    dist = "../doc"

@@ -30,14 +30,14 @@ func main() {
 
 	select {
 	case <-end:
-		log.Info("End of program")
+		log.Info("http server exited abnormally")
 	case <-sysQuit:
 		go httpsrv.Stop()
 		select {
 		case <-end:
-			log.Info("Program is closed")
-		case <-time.After(viper.GetDuration("server.shuttimeout")):
-			log.Info("Program forced shutdown")
+			log.Info("http server shutdown")
+		case <-time.After(viper.GetDuration("http.shuttimeout")):
+			log.Info("http server forced exit")
 		}
 	}
 }

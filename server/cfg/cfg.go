@@ -3,59 +3,42 @@ package cfg
 import (
 	"github.com/zzoe/zoe.github.io/server/define"
 	"go.uber.org/zap"
-	"sync"
+	"golang.org/x/sync/errgroup"
 )
 
 func Clear() {
-	ProcessMust(define.EventResourceClear)
+	MustProcess(define.EventResourceClear)
 }
 
 func Regist(e define.Event, key string, fn func() error) {
 	em, ok := eventMap[e]
 	if ok {
-		em.Store(key, fn)
+		em[key] = fn
 	}
 }
 
-func Process(e define.Event) map[string]error {
-	var lock sync.Mutex
-	errs := make(map[string]error, 0)
-
+func Process(e define.Event) {
 	em, ok := eventMap[e]
 	if ok {
-		var wg sync.WaitGroup
-		em.Range(func(key, value interface{}) bool {
-			wg.Add(1)
-
-			go func(k string) {
-				defer wg.Done()
-
-				fn, _ := em.Load(k)
-				err := fn.(func() error)()
-
-				lock.Lock()
-				errs[k] = err
-				lock.Unlock()
-
-			}(key.(string))
-
-			return true
-		})
-		wg.Wait()
-
-		for key, err := range errs {
-			if err != nil {
-				Log.Error("Process event fail", zap.String("key", key), zap.Error(err))
-			}
+		for k, fn := range em {
+			go func(key string, fn func() error) {
+				if err := fn(); err != nil {
+					Log.Error("Process event fail", zap.Any("event", e), zap.String("key", key), zap.Error(err))
+				}
+			}(k, fn)
 		}
 	}
-	return errs
 }
 
-func ProcessMust(e define.Event) {
-	errs := Process(e)
-	for _, err := range errs {
-		if err != nil {
+func MustProcess(e define.Event) {
+	em, ok := eventMap[e]
+	if ok{
+		var g errgroup.Group
+		for _,fn := range em{
+			g.Go(fn)
+		}
+
+		if err := g.Wait(); err != nil{
 			panic(err)
 		}
 	}

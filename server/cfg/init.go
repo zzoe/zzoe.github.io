@@ -10,7 +10,6 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 )
 
@@ -19,10 +18,10 @@ var (
 	BaseDir = filepath.Dir(os.Args[0])
 
 	debug    = flag.Bool("debug", false, "debug or not")
-	eventMap = map[define.Event]*sync.Map{
-		define.EventInit:          new(sync.Map),
-		define.EventCfgChange:     new(sync.Map),
-		define.EventResourceClear: new(sync.Map),
+	eventMap = map[define.Event]map[string]func() error{
+		define.EventInit:          make(map[string]func() error, 0),
+		define.EventCfgChange:     make(map[string]func() error, 0),
+		define.EventResourceClear: make(map[string]func() error, 0),
 	}
 )
 
@@ -79,9 +78,6 @@ func initConfig() {
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		Log.Info("Config file changed:", zap.Any("e.Op", e.Op))
-		errs := Process(define.EventCfgChange)
-		for i := range errs {
-			Log.Error("配置文件修改回调报错", zap.String("key", i), zap.Error(errs[i]))
-		}
+		Process(define.EventCfgChange)
 	})
 }

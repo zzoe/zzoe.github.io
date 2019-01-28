@@ -11,21 +11,16 @@ import (
 )
 
 var (
-	restarting bool
+	id      int
 	srv     *http.Server
 	srvQuit chan struct{}
 	log     = cfg.Log
 )
 
-func Start(q chan struct{}) {
-	srvQuit = q
+func Start(end chan struct{}) {
+	srvQuit = end
 	cfg.Regist(define.EventCfgChange, "srvRestart", Restart)
-	util.Warn(start())
-}
-
-func Stop() {
-	defer quit()
-	util.Warn(stop())
+	start(id)
 }
 
 func Restart() (err error) {
@@ -34,42 +29,44 @@ func Restart() (err error) {
 		return
 	}
 
-	if err = stop(); err != nil{
+	if err = stop(); err != nil {
 		log.Error("stop()", zap.Error(err))
-		return
 	}
 
-	return start()
+	go start(id)
+	return
 }
 
-func start() (err error) {
+func Stop() {
+	defer quit()
+	util.Warn(stop())
+}
+
+func start(srvID int) (err error) {
 	srv = &http.Server{
-		Addr: viper.GetString("http.addr"),
+		Addr:    viper.GetString("http.addr"),
+		Handler: router(),
 	}
 
-	go func() {
-		if err = srv.ListenAndServe(); err != nil {
-			if !restarting{
-				quit()
-				log.Error("srv.ListenAndServe()", zap.Any("srv", srv), zap.Error(err))
-			}
-		}
-	}()
+	err = srv.ListenAndServeTLS("certificate/server.crt", "certificate/server.key")
+	if err != nil && srvID == id {
+		log.Error("srv.ListenAndServe()", zap.Any("srv", srv), zap.Error(err))
+		quit()
+	}
 
 	return
 }
 
-func stop() (err error){
-	restarting = true
-	defer func() {
-		restarting = false
-	}()
+func stop() error {
+	shutCtx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("http.shuttimeout"))
+	defer cancel()
 
-	return srv.Shutdown(context.Background())
+	id++
+	return srv.Shutdown(shutCtx)
 }
 
-func quit(){
-	if srvQuit != nil{
+func quit() {
+	if srvQuit != nil {
 		close(srvQuit)
 	}
 }
