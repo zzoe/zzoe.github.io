@@ -73,7 +73,7 @@ impl Component for App {
             <>
             <nav class="navbar px-6 py-5" role="navigation" aria-label="main navigation">
               <div class="navbar-brand">
-                <a class="navbar-item" href="http://127.0.0.1:8080">
+                <a class="navbar-item" href="https://zzoe.github.io">
                   <img src="resource/rustacean-flat-happy.svg" width="112" height="28" />
                 </a>
 
