@@ -7,14 +7,13 @@ use settings::Settings;
 mod home;
 mod settings;
 
-// enum Msg {
-//     AddOne,
-// }
+enum Msg {
+    BuggerClick,
+}
 
 struct App {
-    // `ComponentLink` is like a reference to a component.
-// It can be used to send messages to the component
-// link: ComponentLink<Self>,
+    link: ComponentLink<Self>,
+    bugger_switch: bool,
 }
 
 #[derive(Switch, Clone, Debug)]
@@ -42,18 +41,20 @@ fn switch(routes: AppRoute) -> Html {
 }
 
 impl Component for App {
-    type Message = ();
+    type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self {}
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { link, bugger_switch: false }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        // match msg {
-        //     Msg::AddOne => true,
-        // }
-        false
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        return match msg {
+            Msg::BuggerClick => {
+                self.bugger_switch = !self.bugger_switch;
+                true
+            },
+        }
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -61,13 +62,8 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        // let onkeypress = self.link.batch_callback(|event| {
-        //     if event.key() == "Enter" {
-        //         Some(Msg::Submit)
-        //     } else {
-        //         None
-        //     }
-        // });
+        let navbar_class = if self.bugger_switch { "is-active" } else { "" };
+        let on_bugger_click = self.link.callback(|_| Msg::BuggerClick);
 
         html! {
             <>
@@ -77,14 +73,15 @@ impl Component for App {
                   <img src="resource/rustacean-flat-happy.svg" width="112" height="28" />
                 </RouterAnchor<AppRoute>>
 
-                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                <a role="button" class=classes!("navbar-burger", navbar_class) onclick=on_bugger_click
+                    aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                   <span aria-hidden="true"></span>
                   <span aria-hidden="true"></span>
                   <span aria-hidden="true"></span>
                 </a>
               </div>
 
-              <div id="navbarBasicExample" class="navbar-menu">
+              <div id="navbarBasicExample" class=classes!("navbar-menu", navbar_class)>
                 <div class="navbar-start">
                     <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Home}>
                         { "Home" }
