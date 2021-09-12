@@ -73,9 +73,9 @@ impl Component for App {
             <>
             <nav class="navbar px-6 py-5" role="navigation" aria-label="main navigation">
               <div class="navbar-brand">
-                <a class="navbar-item" href="https://zzoe.github.io">
+                <RouterAnchor<AppRoute> classes={"navbar-item"} route={AppRoute::Welcome}>
                   <img src="resource/rustacean-flat-happy.svg" width="112" height="28" />
-                </a>
+                </RouterAnchor<AppRoute>>
 
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                   <span aria-hidden="true"></span>
@@ -137,7 +137,7 @@ impl Component for App {
 
             <footer class="footer px-6 py-5">
                 <div class="content has-text-centered">
-                  <p>{"zoe © www.zoe.zz 鄂ICP备19880211号"}</p>
+                  <p>{"zoe © zzoe.github.io"}</p>
                 </div>
             </footer>
             </>
