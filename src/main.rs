@@ -1,11 +1,12 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use home::Home;
-use settings::Settings;
+use pages::home::Home;
+use pages::settings::Settings;
 
-mod home;
-mod settings;
+mod components;
+mod pages;
+mod util;
 
 enum Msg {
     BuggerClick,
@@ -45,15 +46,18 @@ impl Component for App {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, bugger_switch: false }
+        Self {
+            link,
+            bugger_switch: false,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        return match msg {
+        match msg {
             Msg::BuggerClick => {
                 self.bugger_switch = !self.bugger_switch;
                 true
-            },
+            }
         }
     }
 
