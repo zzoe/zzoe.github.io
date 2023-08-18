@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Yew App</title>
 
-    <link data-trunk rel="scss" href="app.scss">
-    <link data-trunk rel="copy-dir" href="resource"/>
-    <link rel="shortcut icon" href="resource/rustacean-flat-happy.svg">
+<head>
+  <title>poker</title>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="stylesheet" href="tailwind.css">
+
 </head>
+
+<body>
+  <div id="main"></div>
+  <script type="module">
+    import init from "/./assets/dioxus/poker-client.js";
+    init("/./assets/dioxus/poker-client_bg.wasm").then(wasm => {
+      if (wasm.__wbindgen_start === undefined) {
+        wasm.main();
+      }
+    });
+  </script>
+  
+</body>
+
 </html>
